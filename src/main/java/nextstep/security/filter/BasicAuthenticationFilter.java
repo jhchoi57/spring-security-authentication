@@ -15,12 +15,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import static nextstep.security.constants.SecurityConstants.BASIC_AUTH_HEADER;
+import static nextstep.security.constants.SecurityConstants.LOGIN_URL;
 
 public class BasicAuthenticationFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailService;
 
     public BasicAuthenticationFilter(UserDetailsService userDetailService) {
         this.userDetailService = userDetailService;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return LOGIN_URL.equals(request.getRequestURI());
     }
 
     @Override
