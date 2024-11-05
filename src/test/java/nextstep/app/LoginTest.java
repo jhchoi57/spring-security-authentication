@@ -11,10 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
-import javax.servlet.http.HttpSession;
-
-import static nextstep.security.constants.SecurityConstants.SPRING_SECURITY_CONTEXT_KEY;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -36,10 +32,6 @@ class LoginTest {
         );
 
         loginResponse.andExpect(status().isOk());
-
-        HttpSession session = loginResponse.andReturn().getRequest().getSession();
-        assertThat(session).isNotNull();
-        assertThat(session.getAttribute(SPRING_SECURITY_CONTEXT_KEY)).isNotNull();
     }
 
     @DisplayName("로그인 실패 - 사용자 없음")

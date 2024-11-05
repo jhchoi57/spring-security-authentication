@@ -2,6 +2,9 @@ package nextstep.security.filter;
 
 import nextstep.app.ui.AuthenticationException;
 import nextstep.security.auth.*;
+import nextstep.security.context.HttpSessionSecurityContextRepository;
+import nextstep.security.context.SecurityContext;
+import nextstep.security.context.SecurityContextHolder;
 import nextstep.security.service.UserDetailsService;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -16,6 +19,8 @@ import static nextstep.security.constants.SecurityConstants.*;
 
 public class UsernamePasswordAuthenticationFilter extends OncePerRequestFilter {
     private final AuthenticationManager authenticationManager;
+
+    private final HttpSessionSecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
     public UsernamePasswordAuthenticationFilter(UserDetailsService userDetailsService) {
         this.authenticationManager = new ProviderManager(
@@ -41,11 +46,13 @@ public class UsernamePasswordAuthenticationFilter extends OncePerRequestFilter {
         }
 
         Authentication authentication = UsernamePasswordAuthenticationToken.unauthenticated(username, password);
+
         try {
-            request.getSession().setAttribute(
-                    SPRING_SECURITY_CONTEXT_KEY,
-                    this.authenticationManager.authenticate(authentication)
-            );
+            Authentication authenticate = this.authenticationManager.authenticate(authentication);
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(authenticate);
+            SecurityContextHolder.setContext(context);
+            securityContextRepository.saveContext(context, request, response);
         } catch (AuthenticationException e) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "username, password가 일치하지 않슴니다.");
             return;

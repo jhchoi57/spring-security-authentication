@@ -2,6 +2,8 @@ package nextstep.security.filter;
 
 import nextstep.app.ui.AuthenticationException;
 import nextstep.security.auth.*;
+import nextstep.security.context.SecurityContext;
+import nextstep.security.context.SecurityContextHolder;
 import nextstep.security.service.UserDetailsService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -53,7 +55,10 @@ public class BasicAuthenticationFilter extends OncePerRequestFilter {
 
         Authentication authentication = UsernamePasswordAuthenticationToken.unauthenticated(username, password);
         try {
-            this.authenticationManager.authenticate(authentication);
+            Authentication authenticate = this.authenticationManager.authenticate(authentication);
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(authenticate);
+            SecurityContextHolder.setContext(context);
         } catch (AuthenticationException e) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증되지 않은 사용자입니다.");
             return;
