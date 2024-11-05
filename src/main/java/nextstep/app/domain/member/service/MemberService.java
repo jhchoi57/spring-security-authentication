@@ -5,6 +5,8 @@ import nextstep.app.domain.member.repository.MemberRepository;
 import nextstep.security.service.UserDetailsService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class MemberService implements UserDetailsService {
 
@@ -15,9 +17,13 @@ public class MemberService implements UserDetailsService {
     }
 
     @Override
-    public Member retrieveMemberByEmailAndPassword(String email, String password) {
+    public Member retrieveUserDetailsByEmailAndPassword(String email, String password) {
         return memberRepository.findByEmail(email)
                 .filter(member -> member.getPassword().equals(password))
                 .orElse(null);
+    }
+
+    public List<Member> retrieveMembers() {
+        return memberRepository.findAll();
     }
 }

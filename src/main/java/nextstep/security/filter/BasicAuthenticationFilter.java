@@ -1,9 +1,9 @@
 package nextstep.security.filter;
 
-import nextstep.security.param.UserDetails;
+import nextstep.app.ui.AuthenticationException;
+import nextstep.security.auth.*;
 import nextstep.security.service.UserDetailsService;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -13,15 +13,20 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.List;
 
 import static nextstep.security.constants.SecurityConstants.BASIC_AUTH_HEADER;
 import static nextstep.security.constants.SecurityConstants.LOGIN_URL;
 
 public class BasicAuthenticationFilter extends OncePerRequestFilter {
-    private final UserDetailsService userDetailService;
+    private final AuthenticationManager authenticationManager;
 
     public BasicAuthenticationFilter(UserDetailsService userDetailService) {
-        this.userDetailService = userDetailService;
+        this.authenticationManager = new ProviderManager(
+                List.of(
+                        new DaoAuthenticationProvider(userDetailService)
+                )
+        );
     }
 
     @Override
@@ -46,12 +51,13 @@ public class BasicAuthenticationFilter extends OncePerRequestFilter {
         String username = values[0];
         String password = values[1];
 
-        UserDetails userDetails = userDetailService.retrieveMemberByEmailAndPassword(username, password);
-        if (userDetails == null) {
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        Authentication authentication = UsernamePasswordAuthenticationToken.unauthenticated(username, password);
+        try {
+            this.authenticationManager.authenticate(authentication);
+        } catch (AuthenticationException e) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증되지 않은 사용자입니다.");
             return;
         }
-
         filterChain.doFilter(request, response);
     }
 
